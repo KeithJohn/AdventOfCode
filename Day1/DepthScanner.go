@@ -3,51 +3,39 @@ package main
 import (
     "strconv"
     "fmt"
-    "bufio"
+	"strings"
     "os"
 )
 
 func main(){
-    depthIncreases := calculateSumForWindow("input.txt", 1)
+	windowSize := 1
+	window := make([]int, windowSize)
+
+	depthIncreases := 0
+
+	content, fileReadErr := os.ReadFile("input.txt")
+	Check(fileReadErr)
+	values := strings.Split(string(content), "\n")
+	for i, line := range values{
+		value, convErr := strconv.Atoi(strings.TrimSpace(line))
+		Check(convErr)
+
+		oldValue := window[i%windowSize]
+		window[i%windowSize] = value
+		if(i < windowSize){
+			continue
+		}
+
+		if(oldValue < value){
+			depthIncreases++
+		}
+	}
+	
 	fmt.Println(depthIncreases)
 }
 
-func calculateSumForWindow(fileName string, windowSize int) int{
-	file, err := os.Open(fileName)
-	check(err)
-    defer file.Close()
-	scanner := bufio.NewScanner(file)
-
-	counter := 0
-	previousDepthSum := 0
-	depthIncreases := 0
-	var window = make([]int, windowSize)
-	for scanner.Scan(){
-		currIndex := counter % windowSize
-		num, _ := strconv.Atoi(scanner.Text())
-		window[currIndex] = num
-		if(counter >= windowSize){
-			currSum := sumArray(window)
-			if(currSum > previousDepthSum){
-				depthIncreases += 1
-			}
-			previousDepthSum = currSum
-		}
-		counter++
+func Check(err error){
+	if (err != nil){
+		panic(err)
 	}
-	return depthIncreases
-}
-
-func sumArray(arr []int) int {
-	result := 0
-	for _, v := range arr {
-		result += v
-	}
-	return result
-}
-
-func check(e error){
-    if e != nil{
-        panic(e)
-    }
 }
