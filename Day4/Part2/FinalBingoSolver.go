@@ -19,16 +19,14 @@ type Input struct {
 
 //TODO: Clean this up
 func main() {
-	fmt.Println("hello")
 	input := readInputs("../input.txt")
 	solution := 0
 	for _, number := range input.numbers {
-		fmt.Println(number)
+		toBeDeleted := []int{}
+
 		for i, board := range input.boards {
 			index := board.numbersMap[number]
 			if index > 0 {
-				fmt.Println(index)
-				fmt.Println("Board contains number ", board.numbersMap)
 				//Board contains number
 				column := index % 5
 				row := 0
@@ -43,27 +41,45 @@ func main() {
 				} else {
 					row = 4
 				}
-				fmt.Println("Row Column:", row, column)
 				board.markedBoard[row][column] = 1
 				//Remove from map to track sum
 				delete(board.numbersMap, number)
 				input.boards[i] = board
-				fmt.Println("Before Check", board.markedBoard)
 				if checkBoard(board, row, column) {
-					//Board is completed. Calculate sum
-					solution = calculateSum(board) * number
-					fmt.Println(number)
-					fmt.Println("Solution found: ", board)
-					break
+					//Board is completed. Remove from list if not last board
+					fmt.Println("Board completed, Number of boards left: ", len(input.boards))
+					if len(input.boards) == 1 {
+						solution = calculateSum(board) * number
+						fmt.Println("Solution = ", solution)
+						break
+					} else {
+						fmt.Println("Index added to be deleted list: ", i)
+						toBeDeleted = append(toBeDeleted, i)
+					}
 				}
-
 			}
 		}
-		if solution != 0 {
+		if solution == 0 {
+			fmt.Println("To be deleted set: ", toBeDeleted)
+			fmt.Println(len(input.boards))
+			for j := len(toBeDeleted) - 1; j >= 0; j-- {
+				input.boards = RemoveIndex(input.boards, toBeDeleted[j])
+			}
+		} else {
 			break
 		}
+
 	}
 	fmt.Println("Solution Found:", solution)
+}
+
+func RemoveIndex(boards []Board, index int) []Board {
+	if index == (len(boards) - 1) {
+		return boards[:len(boards)-1]
+	} else {
+		return append(boards[:index], boards[index+1:]...)
+	}
+
 }
 
 func readInputs(fileName string) Input {
@@ -111,11 +127,6 @@ func newBoard(rows [][]string) Board {
 		for j, value := range row {
 			//5* i + j is index
 			index := ((5 * i) + j) + 1
-			fmt.Println(index)
-			if index == 0 {
-				fmt.Println("ERROR")
-
-			}
 			intValue, err := strconv.Atoi(value)
 			check(err)
 			numMap[intValue] = index
