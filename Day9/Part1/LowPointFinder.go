@@ -44,6 +44,8 @@ func main() {
 			key := strings.Join([]string{strconv.Itoa(i), strconv.Itoa(j)}, "_")
 			if lowPoints[key] == true {
 				fmt.Print(string("\033[31m"), grid[i][j])
+			} else if grid[i][j] == 9 {
+				fmt.Print(string("\033[32m"), grid[i][j])
 			} else {
 				fmt.Print(string("\033[37m"), grid[i][j])
 			}
