@@ -21,9 +21,47 @@ type Fold struct {
 func main() {
 	points, folds := getPointsAndFolds()
 
-	foldPaper(folds[0], points)
-	fmt.Println("Number of points after first fold: ", len(points))
+	for _, fold := range folds {
+		foldPaper(fold, points)
+	}
 
+	fmt.Println("Number of points: ", len(points))
+	maxX, maxY := 0, 0
+	for _, point := range points {
+		if point.x > maxX {
+			maxX = point.x
+		}
+
+		if point.y > maxY {
+			maxY = point.y
+		}
+	}
+	printPoints(points, maxX, maxY)
+}
+
+func printPoints(points map[string]Point, maxX int, maxY int) {
+
+	for y := 0; y <= maxY; y++ {
+		line := ""
+		for x := 0; x <= maxX; x++ {
+			key := strconv.Itoa(x) + "-" + strconv.Itoa(y)
+			_, ok := points[key]
+			if ok {
+				line = line + "#"
+			} else {
+				if (x % 5) == 4 {
+					line = line + "  "
+				} else {
+					line = line + " "
+				}
+			}
+
+			if y == len(points)-1 {
+				line = line + ""
+			}
+		}
+		fmt.Println(line)
+	}
 }
 
 func foldPaper(fold Fold, points map[string]Point) map[string]Point {
