@@ -2,16 +2,14 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 )
 
 func main() {
 	template, pairInsertionRules := getTemplateAndPairInsertionRules()
-	fmt.Println(template)
-	//fmt.Println(pairInsertionRules)
 	fmt.Println(calculatePolymer(template, pairInsertionRules, 10))
 }
 
@@ -27,62 +25,43 @@ func calculatePolymer(template string, pairInsertionRules map[string]string, num
 			}
 			newTemplate.WriteString(string(pair[0]))
 			newTemplate.WriteString(char)
-			// fmt.Println(newTemplate.String())
-			// fmt.Println(pair + " -> " + char)
-			// fmt.Println("-----")
-			//newTemplate = newTemplate[:i] + char + newTemplate[i:]
 		}
 		newTemplate.WriteString(string(template[len(template)-1]))
 		template = newTemplate.String()
 	}
-	//fmt.Println(newTemplate.String())
-	max := mostCommon(template)
-	min := leastCommon(template)
-	return max - min
+	solution := calcSolution(template)
+	return solution
 }
 
-//TODO: Fix this
-func leastCommon(template string) int {
-	runes := []rune(template)
-	sort.Slice(runes, func(i int, j int) bool { return runes[i] < runes[j] })
-	currCount := 0
-	minCount := len(template)
-	var result rune
-	for i := 1; i < len(runes); i++ {
-		if runes[i] == runes[i-1] {
-			currCount++
-		} else {
-			if currCount < minCount {
-				minCount = currCount
-				result = runes[i-1]
-			}
-		}
-	}
-	fmt.Println(string(result) + " " + strconv.Itoa(minCount))
-	return minCount
-}
-
-//TODO: Fix this
-func mostCommon(template string) int {
-	runes := []rune(template)
-	sort.Slice(runes, func(i int, j int) bool { return runes[i] < runes[j] })
-	fmt.Println(string(runes))
-	currCount := 0
+func calcSolution(template string) int {
+	templateChars := strings.Split(template, "")
+	sort.Strings(templateChars)
+	currCount := 1
 	maxCount := 0
-	var result rune
-	for i := 1; i < len(runes); i++ {
-		if runes[i] == runes[i-1] {
+	maxChar := ""
+	minCount := math.MaxInt64
+	minChar := ""
+	for i := 1; i < len(templateChars); i++ {
+		if templateChars[i-1] == templateChars[i] {
 			currCount++
 		} else {
 			if currCount > maxCount {
 				maxCount = currCount
-				result = runes[i-1]
+				maxChar = templateChars[i-1]
 			}
+			if currCount < minCount {
+				minCount = currCount
+				minChar = templateChars[i-1]
+			}
+			currCount = 0
 		}
 	}
-	fmt.Println(string(result) + " " + strconv.Itoa(maxCount))
-	return maxCount
+	fmt.Println("Max: ", maxChar, "-", maxCount)
+	fmt.Println("Min: ", minChar, "-", minCount)
+
+	return maxCount - minCount
 }
+
 func getTemplateAndPairInsertionRules() (string, map[string]string) {
 	inputLines := readInput("../input.txt")
 	var template string
