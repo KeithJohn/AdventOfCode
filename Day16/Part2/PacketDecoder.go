@@ -116,43 +116,51 @@ func (s Scanner) Len() int{
 // 111 011 1 00000000011 [010 100 00001] [100 100 00010] [001 100 00011] 00000
 
 func ProcessPacket(s * Scanner) int {
-	versionBits := s.Take(3)
-	version := parseBitString(versionBits)
+	s.Take(3)
+	// versionBits := s.Take(3)
+	// version := parseBitString(versionBits)
+	// fmt.Println(version)
 	
 	typeBits := s.Take(3)
 	typeId := parseBitString(typeBits)
 
-	if typeId == 4 {
-		//TODO:
+	if typeId == 4{
+		//LITERAL
 		valueBits := ""
-		for bits := s.Take(5);bits[0] != '0'; bits = s.Take(5){
+		bits := s.Take(5)
+		for ;bits[0] != '0'; bits = s.Take(5){
 			valueBits += bits[1:]
 		}
+		valueBits += bits[1:]
 		// lastBits := s.Take(5)
 		// valueBits += lastBits[1:]
-		return version
+		return parseBitString(valueBits)
 	}
 
+	acc := getAccumulator(typeId)
+
+	var result int
 	opType := s.Take(1)[0]
-	subVersionSum := 0
 	if opType == '0'{
 		lengthBits := s.Take(15)
 		length := parseBitString(lengthBits)
 		subScanner := s.SubScanner(length)
 
 		for !subScanner.IsDone(){
-			subVersionSum += ProcessPacket(subScanner)
+			value := ProcessPacket(subScanner)
+			result = acc(value)
 		}
 	}else{
 		packetCountBits := s.Take(11)
 		packetCount := parseBitString(packetCountBits)
 
 		for i := 0; i < packetCount; i++{
-			subVersionSum += ProcessPacket(s)
+			value := ProcessPacket(s)
+			result = acc(value)
 		}
 	}
 
-	return version + subVersionSum
+	return result
 }
 
 func parseBitString(str string) int{
@@ -204,6 +212,147 @@ func hexToBinary(char byte) string {
 		return "1111"
 	}
 	return ""
+}
+
+func minimum(nums ...int) int{
+	lowest := int(^uint(0) >> 1) 
+	for _, num := range nums{
+		if num < lowest{
+			lowest = num
+		}
+	}
+	return lowest
+}
+
+func maximum(nums ...int) int{
+	highest := -1 
+	for _, num := range nums{
+		if num > highest{
+			highest = num
+		}
+	}
+	return highest
+}
+
+type Accumulator func(value int) int
+
+func getAccumulator(typeId int) Accumulator{
+	switch typeId {
+	case 0:
+		return GetSumAccumulator()
+	case 1:
+		return GetProductAccumulator()
+	case 2:
+		return GetMinAccumulator()
+	case 3:
+		return GetMaxAccumulator()
+	case 5:
+		return GetGreaterThanAccumulator()
+	case 6:
+		return GetLessThanAccumulator()
+	case 7:
+		return GetEqualToAccumulator()
+	}
+	panic("Invalid Type Id")
+	return nil
+}
+
+func GetSumAccumulator() Accumulator{
+	acc := 0
+	return func(value int) int{
+		acc += value
+		return acc
+	}
+}
+
+func GetProductAccumulator() Accumulator{
+	isFirst := true
+	acc := 0
+	return func(value int) int {
+		if isFirst {
+			acc=value
+		}else{
+			acc *= value
+		}
+		isFirst = false
+		return acc
+	}	
+}
+func GetMinAccumulator() Accumulator{
+	isFirst := true
+	acc := 0
+	return func(value int) int {
+		if isFirst{
+			acc = value
+		}else if value < acc{
+			acc = value
+		}
+
+		isFirst = false
+		return acc
+	}
+}
+func GetMaxAccumulator() Accumulator{
+	isFirst := true
+	acc := 0
+	return func(value int) int {
+		if isFirst{
+			acc = value
+		}else if value > acc{
+				acc = value
+		}
+		
+		isFirst = false
+		return acc
+	}
+}
+func GetGreaterThanAccumulator() Accumulator{
+	isFirst := true
+	acc := 0
+	return func(value int) int {
+		if isFirst {
+			acc = value
+		} else if acc > value{
+			acc = 1
+		}else {
+			acc = 0
+		}
+
+		isFirst = false
+		return acc
+	}
+}
+func GetLessThanAccumulator() Accumulator{
+	isFirst := true
+	acc := 0
+	return func(value int) int {
+		if isFirst {
+			acc = value
+		} else if acc < value{
+			acc = 1
+		}else {
+			acc = 0
+		}
+
+		isFirst = false
+		return acc
+	}
+}
+func GetEqualToAccumulator() Accumulator{
+	isFirst := true
+	acc := 0
+	return func(value int) int {
+		if isFirst {
+			acc = value
+		} else if acc == value{
+			acc = 1
+		}else {
+			acc = 0
+		}
+
+		isFirst = false
+		return acc
+	}
 }
 
 func readInput(fileName string) []string {
