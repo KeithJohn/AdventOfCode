@@ -5,16 +5,32 @@ import (
 	"os"
 	"strings"
 	"strconv"
+	"math"
 )
 
 func main(){
-	lines := readInput("../simpleInput.txt")
+	lines := readInput("../input.txt")
 	targetArea := getTargetArea(lines[0])
 	fmt.Println("X: ",targetArea.X1, ", ", targetArea.X2, " Y: ", targetArea.Y1, ", ", targetArea.Y2)
 	
-	probe := &Probe{0, 0, 6, 9, -1, targetArea}
-	shoot(probe)
-
+	maxX:= getMaxX(targetArea)
+	maxY:= int(math.Abs(float64(targetArea.Y1)))
+	fmt.Println(maxX)
+	maxHeight := 0
+	bestX := 0
+	bestY := 0
+	for y := 0; y <= maxY; y++{
+		for x := 0; x <= maxX; x++{
+			probe := &Probe{0, 0, x, y, -1, targetArea}
+			shoot(probe)
+			if probe.IsInTargetArea() && probe.maxY > maxHeight{
+				maxHeight = probe.maxY
+				bestX = x
+				bestY = y
+			}
+		}
+	}
+	fmt.Println(bestX, bestY, maxHeight)
 }
 
 type TargetArea struct{
@@ -35,11 +51,15 @@ type Probe struct{
 
 func shoot(p *Probe) *Probe{
 	step := 1
+	startXVel := p.Xvel
+	startYVel := p.Yvel
 	for !p.IsInTargetArea() && p.IsMoving(){
 		p.moveProbe()
 		step++
 	}
-	fmt.Println("DONE: ", step, " Max height: ", p.maxY, " Made Target Area: ", p.IsInTargetArea())
+	if p.IsInTargetArea(){
+		fmt.Println("DONE: ", step, " Max height: ", p.maxY, "Start X Vel: ", startXVel, "Start Y Vel: ", startYVel, " Made Target Area: ", p.IsInTargetArea())
+	}
 	return p
 }
 
@@ -64,8 +84,12 @@ func (p *Probe) moveProbe() *Probe{
 	//Y velocity
 	p.Yvel -= 1
 	
-	fmt.Println("X: ", p.Xpos, " Y: ", p.Ypos, " XVel: ", p.Xvel, " YVel: ", p.Yvel, "maxY: ", p.maxY)
 	return p
+}
+
+func getMaxX(targetArea *TargetArea) int{
+	root1 := 1 + math.Sqrt(1 - (4*(float64(-targetArea.X2*2))))/2
+	return int(math.Round(root1))
 }
 
 func (p *Probe) IsInTargetArea() bool{
