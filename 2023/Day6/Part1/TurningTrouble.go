@@ -3,43 +3,39 @@ package main
 import (
 	"adventofcode/util"
 	"fmt"
-	"strings"
 )
 
 func main() {
-	lines := util.ReadInput("../simpleInput.txt")
+	lines := util.ReadInput("../input.txt")
 	for _, line := range lines {
 		fmt.Println(line)
-		start, end := 0, 4
-		startFound := false
-
-		for !startFound {
-			window := line[start:end]
-			if !strings.Contains(window, string(line[end+1])) {
-				start++
-				end++
-				startFound = true
-				continue
-			} else {
-				// strings.I
-			}
-			start++
-			end++
-		}
-		fmt.Println(line[start:end])
-		fmt.Println(end + 1)
+		fmt.Println(findStartOfPacket(line, 4))
 	}
 }
 
+//O(m*n) m=windowSize... probably could get this to O(n)
 func findStartOfPacket(line string, windowSize int) int {
-	charMap := make(map[string]int)
-	for i := 0; i < windowSize; i++ {
-		charMap[string(line[i])] = i
+	start := -1
+	end := windowSize - 1
+	hasDuplicate := true
+	for hasDuplicate {
+		start++
+		end++
+		hasDuplicate = checkDuplicate(line[start:end])
 	}
+	fmt.Println("No duplicate at ", line[start:end])
 
-	windowSize := 0
-	for true {
-		break
+	return end
+}
+
+func checkDuplicate(s string) bool {
+	charMap := make(map[string]int)
+	for _, char := range s {
+		if _, ok := charMap[string(char)]; ok {
+			return true
+		} else {
+			charMap[string(char)] = 1
+		}
 	}
-	return index
+	return false
 }
