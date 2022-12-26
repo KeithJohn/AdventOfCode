@@ -34,7 +34,7 @@ func main() {
 				if commandParts[2] == ".." {
 					currFile = currFile.parentDir
 				} else {
-					//fmt.Println("CDing to ", strings.Trim(commandParts[2], " "))
+					fmt.Println("CDing to ", strings.Trim(commandParts[2], " "))
 					currFile = currFile.children[strings.Trim(commandParts[2], " ")]
 				}
 			}
@@ -55,17 +55,8 @@ func main() {
 			}
 		}
 	}
-	// getSize(rootFile)
 	printDirTree(rootFile, 0)
-	// sum := 0
-	// for _, child := range rootFile.children {
-	// 	if child.isDirectory && child.size > 100000 {
-	// 		childSum := getTotalSum(child)
-	// 		sum += childSum
-	// 		fmt.Println(childSum)
-	// 	}
-	// }
-	// fmt.Println("SUM: ", sum)
+	fmt.Println(getTotalSum(rootFile))
 }
 
 func createFile(parentDir *File, name string, size int, isDir bool) *File {
@@ -93,7 +84,7 @@ func printDirTree(file *File, depth int) {
 func (f *File) printFile(depth int) {
 	padding := strings.Repeat("   ", depth)
 	if f.isDirectory {
-		fmt.Println(padding, "dir ", f.name, " ", f.size)
+		fmt.Println(padding, "dir ", f.name, " ", getSize(f))
 		fmt.Println(padding, "|__")
 	} else {
 		fmt.Println(padding, f.size, f.name)
@@ -106,7 +97,7 @@ func getTotalSum(f *File) int {
 		currTotal += getTotalSum(element)
 	}
 
-	if f.isDirectory {
+	if f.isDirectory && f.size <= 100000 {
 		currTotal += f.size
 	}
 	return currTotal
